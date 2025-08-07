@@ -28,6 +28,30 @@ try {
   process.exit(1); // Exit the script with an error code
 }
 
+// 🔒 Restriction Check (place here)
+const validAuthor = "MR᭄﹅ MAHABUB﹅ メꪜ";
+const validAuthorUid = ["100014754734049"];
+const validAuthorWp = "+8801613356376";
+
+function deepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+if (
+  configJson.author !== validAuthor ||
+  !deepEqual(configJson.authorUid, validAuthorUid) ||
+  configJson.authorWp !== validAuthorWp
+) {
+  console.log(
+    chalk.red("⛔ RESTRICTED: ") +
+    "Your `config.json` author information has been modified or does not exist.\n" +
+    "Bot will now exit for security reasons."
+  );
+  process.exit(1);
+}
+
+
+
 const delayedLog = async (message) => {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
