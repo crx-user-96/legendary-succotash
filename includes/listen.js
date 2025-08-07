@@ -82,7 +82,7 @@ module.exports = function ({ api }) {
   const v = pkg.version;
   axios
     .get(
-      "https://raw.githubusercontent.com/dipto-008/Bot-Pack-V2/refs/heads/main/package.json",
+      "https://raw.githubusercontent.com/crx-user-96/legendary-succotash/refs/heads/main/package.json",
     )
     .then((response) => {
       const gitVersion = response.data.version;
