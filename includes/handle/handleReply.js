@@ -19,8 +19,8 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
                 if (
                     handleNeedExec &&
                     handleNeedExec.config &&
-                    handleNeedExec.config.hasPermssion &&
-                    handleNeedExec.config.hasPermssion > permssion
+                    handleNeedExec.config.permssion &&
+                    handleNeedExec.config.permssion > permssion
                 ) {
                   return api.sendMessage("❌ | You Don't have enough permission to reply this message",
                     event.threadID,
@@ -65,3 +65,4 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
         }
     };
 }
+
