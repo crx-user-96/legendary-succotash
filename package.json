@@ -10,15 +10,8 @@
   "presets": [
     "@babel/preset-env"
   ],
-  "keywords": [
-    "Facebook",
-    "Messenger",
-    "SpermLord",
-    "CatalizCS",
-    "Disme-Bot",
-    "usePrefix",
-    "D-Jukie",
-    "Yan Maglinte"
+  "keywords": [ 
+    "mahabub"
   ],
   "license": "GPL-3.0",
   "author": "MR᭄﹅ MAHABUB﹅ メꪜ",
