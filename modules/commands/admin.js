@@ -1,11 +1,11 @@
 module.exports.config = {
 	name: "admin",
 	version: "1.0.5",
-	hasPermssion: 0,
+	permssion: 0,
 	credits: "Mirai Team",
 	description: "Admin Settings",
-  usePrefix: true,
-	commandCategory: "Admin",
+    prefix: true,
+	category: "Admin",
 	usages: "[list/add/remove] [userID]",
   cooldowns: 5,
   dependencies: {
