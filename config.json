@@ -23,6 +23,10 @@
   "eventDisabled": [],
   "BOTNAME": "「 𝐌𝐀𝐇𝐀𝐁𝐔𝐁-𝐁𝐎𝐓 」🩷🪽",
   "PREFIX": ".",
+  "BOTOPERATORS": [
+  "100014754734049", 
+  ""
+],
   "ADMINBOT": [
     "100014754734049",
     ""
