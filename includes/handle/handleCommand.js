@@ -26,8 +26,10 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
     let command = commands.get(commandName) || aliases.get(commandName);
     const replyAD = "[ MODE ] - Only bot admin can use bot";
 
+    // Admin only global check for commands
     if (
       command &&
+      command.config &&
       command.config.name.toLowerCase() === commandName.toLowerCase() &&
       !ADMINBOT.includes(senderID) &&
       adminOnly &&
@@ -92,11 +94,13 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
       }
     }
 
-    if (commandBanned.get(threadID) || commandBanned.get(senderID)) {
+    // === SAFETY CHECK for commandBanned usage ===
+    if (command && command.config && (commandBanned.get(threadID) || commandBanned.get(senderID))) {
       if (!ADMINBOT.includes(senderID)) {
-        const banThreads = commandBanned.get(threadID) || [],
-          banUsers = commandBanned.get(senderID) || [];
-        if (banThreads.includes(command.config.name))
+        const banThreads = commandBanned.get(threadID) || [];
+        const banUsers = commandBanned.get(senderID) || [];
+
+        if (banThreads.includes(command.config.name)) {
           return api.sendMessage(
             global.getText("handleCommand", "commandThreadBanned", command.config.name),
             threadID,
@@ -106,7 +110,9 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
             },
             messageID
           );
-        if (banUsers.includes(command.config.name))
+        }
+
+        if (banUsers.includes(command.config.name)) {
           return api.sendMessage(
             global.getText("handleCommand", "commandUserBanned", command.config.name),
             threadID,
@@ -116,10 +122,11 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
             },
             messageID
           );
+        }
       }
     }
 
-    // Ensure default values
+    // Ensure default values for prefix-related configs
     if (command && command.config) {
       if (typeof command.config.prefix === "undefined") command.config.prefix = true;
       if (typeof command.config.allowPrefix === "undefined") command.config.allowPrefix = false;
@@ -128,6 +135,7 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
     // Prefix check
     if (
       command &&
+      command.config &&
       command.config.prefix === false &&
       commandName.toLowerCase() !== command.config.name.toLowerCase() &&
       !command.config.allowPrefix
@@ -139,13 +147,14 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
       );
     }
 
-    if (command && command.config.prefix === true && !body.startsWith(prefix)) {
+    if (command && command.config && command.config.prefix === true && !body.startsWith(prefix)) {
       return;
     }
 
     // NSFW check
     if (
       command &&
+      command.config &&
       command.config.category &&
       command.config.category.toLowerCase() === "nsfw" &&
       !global.data.threadAllowNSFW.includes(threadID) &&
@@ -162,11 +171,11 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
       );
     }
 
-    // Get thread info
+    // Get thread info (try-catch)
     var threadInfo2;
     if (event.isGroup === true)
       try {
-        threadInfo2 = await Threads.get(threadID) || (await Threads.getInfo(threadID));
+        threadInfo2 = (await Threads.get(threadID)) || (await Threads.getInfo(threadID));
         if (Object.keys(threadInfo2).length === 0) throw new Error();
       } catch (err) {
         logger.log(global.getText("handleCommand", "cantGetInfoThread", "error"));
@@ -175,7 +184,7 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
     // Permission check
     let permssion = 0;
     const threadInfoo = await Threads.get(threadID);
-    const isGroupAdmin = threadInfoo.adminIDs.find(el => el.id == senderID);
+    const isGroupAdmin = threadInfoo?.adminIDs?.find(el => el.id == senderID);
     if (ADMINBOT.includes(senderID)) permssion = 2;
     else if (isGroupAdmin) permssion = 1;
 
@@ -192,16 +201,15 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
     }
 
     // Cooldown handling
-    if (
-      command &&
-      command.config &&
-      !client.cooldowns.has(command.config.name)
-    ) {
-      client.cooldowns.set(command.config.name, new Map());
+    if (command && command.config) {
+      if (!client.cooldowns.has(command.config.name)) {
+        client.cooldowns.set(command.config.name, new Map());
+      }
     }
 
-    const timestamps = command ? client.cooldowns.get(command.config.name) : undefined;
-    const cooldown = ((command.config.cooldowns || 1) * 1000);
+    const timestamps = command && command.config ? client.cooldowns.get(command.config.name) : undefined;
+    const cooldown = (command && command.config ? (command.config.cooldowns || 1) * 1000 : 1000);
+
     if (
       timestamps &&
       timestamps.has(senderID) &&
@@ -210,7 +218,7 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
       return api.setMessageReaction("⏳", messageID, () => {}, true);
     }
 
-    // Language loader
+    // Language loader for command
     let getText2 = () => {};
     if (
       command &&
@@ -248,7 +256,7 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
       if (command && typeof command.run === "function") {
         activeCmd = true;
         await command.run(Obj);
-        timestamps.set(senderID, dateNow);
+        timestamps?.set(senderID, dateNow);
         activeCmd = false;
 
         if (DeveloperMode === true) {
