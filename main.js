@@ -400,7 +400,7 @@ function onBot() {
               );
               continue;
             }
-            if (!config?.commandCategory) {
+            if (!config?.category) {
               console.log(
                 chalk.red(`[ COMMAND ] ${command} commandCategory is empty!`),
               );
