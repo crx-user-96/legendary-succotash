@@ -6,31 +6,24 @@ module.exports = function ({ api, models, Users, Threads, Currencies, ...rest })
   const logger = require("../../utils/log");
 
   return async function ({ event, ...rest2 }) {
-    if (activeCmd) {
-      return;
-    }
+    if (activeCmd) return;
 
     const dateNow = Date.now();
-    const time = moment.tz("Asia/Dhaka").format("HH:MM:ss DD/MM/YYYY");
+    const time = moment.tz("Asia/Dhaka").format("HH:mm:ss DD/MM/YYYY");
     const { allowInbox, PREFIX, ADMINBOT, DeveloperMode, adminOnly } = global.config;
     const { userBanned, threadBanned, threadInfo, threadData, commandBanned } = global.data;
-    const { commands,aliases, cooldowns } = global.client;
+    const { commands, aliases, cooldowns } = global.client;
 
-    var { body, senderID, threadID, messageID } = event;
-    //var senderID = String(senderID)
-    //  threadID = String(threadID);
-    
-    if(!body) return;
-    
+    let { body, senderID, threadID, messageID } = event;
+    if (!body) return;
+
     const threadSetting = Threads.get(threadID) || {};
-    
-const prefix = threadSetting?.prefix || PREFIX
- const isPrefix = body.startsWith(prefix);
-const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim().split(/\s+/);
-		
-			let commandName = args.shift()?.toLowerCase();
+    const prefix = threadSetting?.prefix || PREFIX;
+    const isPrefix = body.startsWith(prefix);
+    const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/) : body.trim().split(/\s+/);
+    let commandName = args.shift()?.toLowerCase();
 
-    var command = commands.get(commandName) || aliases.get(commandName);
+    let command = commands.get(commandName) || aliases.get(commandName);
     const replyAD = "[ MODE ] - Only bot admin can use bot";
 
     if (
@@ -56,7 +49,7 @@ const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim
     if (
       userBanned.has(senderID) ||
       threadBanned.has(threadID) ||
-      (allowInbox == ![] && senderID == threadID)
+      (allowInbox === false && senderID === threadID)
     ) {
       if (!ADMINBOT.includes(senderID.toString())) {
         if (userBanned.has(senderID)) {
@@ -65,29 +58,22 @@ const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim
             global.getText("handleCommand", "userBanned", reason, dateAdded),
             threadID,
             async (err, info) => {
-              await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+              await new Promise(resolve => setTimeout(resolve, 5 * 1000));
               return api.unsendMessage(info.messageID);
             },
-            messageID,
+            messageID
           );
-        } else {
-          if (threadBanned.has(threadID)) {
-            const { reason, dateAdded } = threadBanned.get(threadID) || {};
-            return api.sendMessage(
-              global.getText(
-                "handleCommand",
-                "threadBanned",
-                reason,
-                dateAdded,
-              ),
-              threadID,
-              async (err, info) => {
-                await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-                return api.unsendMessage(info.messageID);
-              },
-              messageID,
-            );
-          }
+        } else if (threadBanned.has(threadID)) {
+          const { reason, dateAdded } = threadBanned.get(threadID) || {};
+          return api.sendMessage(
+            global.getText("handleCommand", "threadBanned", reason, dateAdded),
+            threadID,
+            async (err, info) => {
+              await new Promise(resolve => setTimeout(resolve, 5 * 1000));
+              return api.unsendMessage(info.messageID);
+            },
+            messageID
+          );
         }
       }
     }
@@ -95,18 +81,14 @@ const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim
     if (body.startsWith(PREFIX)) {
       if (!command) {
         const allCommandName = Array.from(commands.keys());
-        const checker = stringSimilarity.findBestMatch(
-          commandName,
-          allCommandName,
-        );
+        const checker = stringSimilarity.findBestMatch(commandName, allCommandName);
         return api.sendMessage(
-          commandName 
-            ? global.getText("handleCommand", "commandNotExist", checker.bestMatch.target) 
-            : `The command you are using does not exist in System, type ${PREFIX}help to see all available commands`,
+          commandName
+            ? global.getText("handleCommand", "commandNotExist", checker.bestMatch.target)
+            : `The command you are using does not exist. Type ${PREFIX}help to see all available commands.`,
           threadID,
           messageID
         );
-       
       }
     }
 
@@ -116,119 +98,100 @@ const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim
           banUsers = commandBanned.get(senderID) || [];
         if (banThreads.includes(command.config.name))
           return api.sendMessage(
-            global.getText(
-              "handleCommand",
-              "commandThreadBanned",
-              command.config.name,
-            ),
+            global.getText("handleCommand", "commandThreadBanned", command.config.name),
             threadID,
             async (err, info) => {
-              await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+              await new Promise(resolve => setTimeout(resolve, 5 * 1000));
               return api.unsendMessage(info.messageID);
             },
-            messageID,
+            messageID
           );
         if (banUsers.includes(command.config.name))
           return api.sendMessage(
-            global.getText(
-              "handleCommand",
-              "commandUserBanned",
-              command.config.name,
-            ),
+            global.getText("handleCommand", "commandUserBanned", command.config.name),
             threadID,
             async (err, info) => {
-              await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+              await new Promise(resolve => setTimeout(resolve, 5 * 1000));
               return api.unsendMessage(info.messageID);
             },
-            messageID,
+            messageID
           );
       }
     }
 
-    if (command && command.config && command.config.usePrefix !== undefined) {
-        command.config.usePrefix = command.config.usePrefix ?? true;
-    }
-
+    // Ensure default values
     if (command && command.config) {
-      if (
-        command.config.usePrefix === false &&
-        commandName.toLowerCase() !== command.config.name.toLowerCase() &&
-        !command.config.allowPrefix
-      ) {
-        api.sendMessage(
-          global.getText("handleCommand", "notMatched", command.config.name),
-          event.threadID,
-          event.messageID,
-        );
-        return;
-      }
-      if (command.config.usePrefix === true && !body.startsWith(PREFIX)) {
-        return;
-      }
+      if (typeof command.config.prefix === "undefined") command.config.prefix = true;
+      if (typeof command.config.allowPrefix === "undefined") command.config.allowPrefix = false;
     }
 
-    if (command && command.config) {
-      if (typeof command.config.usePrefix === "undefined") {
-        api.sendMessage(
-          global.getText("handleCommand", "noPrefix", command.config.name),
-          event.threadID,
-          event.messageID,
-        );
-        return;
-      }
-    }
-
+    // Prefix check
     if (
       command &&
-      command.config &&
-      command.config.commandCategory &&
-      command.config.commandCategory.toLowerCase() === "nsfw" &&
+      command.config.prefix === false &&
+      commandName.toLowerCase() !== command.config.name.toLowerCase() &&
+      !command.config.allowPrefix
+    ) {
+      return api.sendMessage(
+        global.getText("handleCommand", "notMatched", command.config.name),
+        threadID,
+        messageID
+      );
+    }
+
+    if (command && command.config.prefix === true && !body.startsWith(prefix)) {
+      return;
+    }
+
+    // NSFW check
+    if (
+      command &&
+      command.config.category &&
+      command.config.category.toLowerCase() === "nsfw" &&
       !global.data.threadAllowNSFW.includes(threadID) &&
       !ADMINBOT.includes(senderID)
-    )
+    ) {
       return api.sendMessage(
         global.getText("handleCommand", "threadNotAllowNSFW"),
         threadID,
         async (err, info) => {
-          await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+          await new Promise(resolve => setTimeout(resolve, 5 * 1000));
           return api.unsendMessage(info.messageID);
         },
-        messageID,
-      );
-
-    var threadInfo2;
-    if (event.isGroup == !![])
-      try {
-        threadInfo2 = await Threads.get(threadID) || (await Threads.getInfo(threadID));
-        if (Object.keys(threadInfo2).length == 0) throw new Error();
-      } catch (err) {
-        logger.log(
-          global.getText("handleCommand", "cantGetInfoThread", "error"),
-        );
-      }
-
-    var permssion = 0;
-    var threadInfoo = (await Threads.get(threadID));
-    const find = threadInfoo.adminIDs.find((el) => el.id == senderID);
-    if (ADMINBOT.includes(senderID)) permssion = 2;
-    else if (!ADMINBOT.includes(senderID) && find) permssion = 1;
-    if (
-      command &&
-      command.config &&
-      command.config.hasPermssion &&
-      command.config.hasPermssion > permssion
-    ) {
-      return api.sendMessage(
-        global.getText(
-          "handleCommand",
-          "permissionNotEnough",
-          command.config.name,
-        ),
-        event.threadID,
-        event.messageID,
+        messageID
       );
     }
 
+    // Get thread info
+    var threadInfo2;
+    if (event.isGroup === true)
+      try {
+        threadInfo2 = await Threads.get(threadID) || (await Threads.getInfo(threadID));
+        if (Object.keys(threadInfo2).length === 0) throw new Error();
+      } catch (err) {
+        logger.log(global.getText("handleCommand", "cantGetInfoThread", "error"));
+      }
+
+    // Permission check
+    let permssion = 0;
+    const threadInfoo = await Threads.get(threadID);
+    const isGroupAdmin = threadInfoo.adminIDs.find(el => el.id == senderID);
+    if (ADMINBOT.includes(senderID)) permssion = 2;
+    else if (isGroupAdmin) permssion = 1;
+
+    if (
+      command &&
+      command.config &&
+      command.config.permssion > permssion
+    ) {
+      return api.sendMessage(
+        global.getText("handleCommand", "permissionNotEnough", command.config.name),
+        threadID,
+        messageID
+      );
+    }
+
+    // Cooldown handling
     if (
       command &&
       command.config &&
@@ -237,72 +200,58 @@ const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim
       client.cooldowns.set(command.config.name, new Map());
     }
 
-    const timestamps =
-      command && command.config
-        ? client.cooldowns.get(command.config.name)
-        : undefined;
-
-    const expirationTime =
-      ((command && command.config && command.config.cooldowns) || 1) * 1000;
-
+    const timestamps = command ? client.cooldowns.get(command.config.name) : undefined;
+    const cooldown = ((command.config.cooldowns || 1) * 1000);
     if (
       timestamps &&
-      timestamps instanceof Map &&
       timestamps.has(senderID) &&
-      dateNow < timestamps.get(senderID) + expirationTime
-    )
-      return api.setMessageReaction(
-        "⏳",
-        event.messageID,
-        (err) =>
-          err
-            ? logger.log(
-                "An error occurred while executing setMessageReaction",
-                2,
-              )
-            : "",
-        !![],
-      );
+      dateNow < timestamps.get(senderID) + cooldown
+    ) {
+      return api.setMessageReaction("⏳", messageID, () => {}, true);
+    }
 
-    var getText2;
+    // Language loader
+    let getText2 = () => {};
     if (
       command &&
       command.languages &&
       typeof command.languages === "object" &&
       command.languages.hasOwnProperty(global.config.language)
-    )
+    ) {
       getText2 = (...values) => {
-        var lang = command.languages[global.config.language][values[0]] || "";
-        for (var i = values.length; i > 0x2533 + 0x1105 + -0x3638; i--) {
+        let lang = command.languages[global.config.language][values[0]] || "";
+        for (let i = values.length; i > 0; i--) {
           const expReg = RegExp("%" + i, "g");
           lang = lang.replace(expReg, values[i]);
         }
         return lang;
       };
-    else getText2 = () => {};
+    }
 
     try {
       const Obj = {
         ...rest,
         ...rest2,
-        api: api,
-        event: event,
-        args: args,
-        models: models,
-        Users: Users,
+        api,
+        event,
+        args,
+        models,
+        Users,
         usersData: Users,
+        Threads,
         threadsData: Threads,
-        Threads: Threads,
-        Currencies: Currencies,
-        permssion: permssion,
+        Currencies,
+        permssion,
         getText: getText2,
       };
 
       if (command && typeof command.run === "function") {
-        command.run(Obj);
+        activeCmd = true;
+        await command.run(Obj);
         timestamps.set(senderID, dateNow);
+        activeCmd = false;
 
-        if (DeveloperMode == !![]) {
+        if (DeveloperMode === true) {
           logger.log(
             global.getText(
               "handleCommand",
@@ -312,19 +261,19 @@ const args = isPrefix ? body.slice(prefix.length).trim().split(/\s+/): body.trim
               senderID,
               threadID,
               args.join(" "),
-              Date.now() - dateNow,
+              Date.now() - dateNow
             ),
-            "DEV MODE",
+            "DEV MODE"
           );
         }
         return;
       }
     } catch (e) {
+      activeCmd = false;
       return api.sendMessage(
         global.getText("handleCommand", "commandError", commandName, e),
-        threadID,
+        threadID
       );
     }
-    activeCmd = false;
   };
 };
