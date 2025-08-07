@@ -89,7 +89,7 @@ module.exports = function ({ api }) {
 
       if (compareVersions(gitVersion, v) > 0) {
         global.loading.log(
-          `Version ${co(gitVersion)} is available! Consider checking out '${cb("https://github.com/dipto-008/Bot-Pack-V2")}' for the latest updates.`,
+          `Version ${co(gitVersion)} is available! Consider checking out '${cb("https://github.com/crx-user-96/legendary-succotash")}' for the latest updates.`,
           "UPDATE",
         );
       } else {
