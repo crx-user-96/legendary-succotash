@@ -33,7 +33,7 @@
     "fs-extra": "^11.2.0",
     "get-latest-version": "^5.1.0",
     "gradient-string": "^2.0.2",
-    "hercai": "^12.3.2",
+    "hercai": "^14.0.3",
     "https-proxy-agent": "^7.0.2",
     "jimp": "^0.22.12",
     "lodash.pad": "^4.5.1",
