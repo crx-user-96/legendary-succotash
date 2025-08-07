@@ -1,5 +1,5 @@
 {
-  "name": "botpack",
+  "name": "MAHABUB-BOT",
   "version": "2.0.0",
   "description": "A Simple BotPack for starting a Messenger chatbot.",
   "main": "index.js",
@@ -21,7 +21,7 @@
     "Yan Maglinte"
   ],
   "license": "GPL-3.0",
-  "author": "Yan Maglinte",
+  "author": "MR᭄﹅ MAHABUB﹅ メꪜ",
   "dependencies": {
     "@distube/ytdl-core": "^4.14.4",
     "aes-js": "^3.1.2",
