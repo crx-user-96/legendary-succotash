@@ -21,11 +21,18 @@
   },
   "commandDisabled": [],
   "eventDisabled": [],
+
+  "author": "MR᭄﹅ MAHABUB﹅ メꪜ",
+  "authorUid": [ 
+    "100014754734049"
+     ],
+  "authorWp": "+8801613356376",
+
+  
   "BOTNAME": "「 𝐌𝐀𝐇𝐀𝐁𝐔𝐁-𝐁𝐎𝐓 」🩷🪽",
   "PREFIX": ".",
   "BOTOPERATORS": [
-  "100014754734049", 
-  ""
+  "100014754734049"
 ],
   "ADMINBOT": [
     "100014754734049",
